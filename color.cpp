@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "cube.h"
 // thanks to Catelite for making this list
 char irc2sauer[] = {
 	'7', // 0 = white/default
@@ -85,7 +86,7 @@ char sauer2console[] = {
 };
 
 void color_sauer2console(char *src, char *dst) {
-	strcpy(dst, "\033[1;37m");
+	copystring(dst, "\033[1;37m");
 	for(char *c = src; *c; c++) {
 		if(*c == '\f') {
 			c++;
