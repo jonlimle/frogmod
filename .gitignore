@@ -1,0 +1,10 @@
+*.P
+*.o
+frogserv
+enet/.deps
+enet/Makefile
+enet/config.log
+enet/config.status
+enet/libenet.a
+enet/include/Makefile
+enet/include/enet/Makefile
