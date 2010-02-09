@@ -2922,6 +2922,28 @@ namespace server
 		if(scriptircsource) scriptircsource->speak(buf);
 	});
 
+	ICOMMAND(forceintermission, "", (), { startintermission(); });
+	ICOMMAND(recorddemo, "i", (int *i), {
+		demonextmatch = i && *i;
+		echo("Demo recording is %s for next match.", demonextmatch ? "enabled" : "disabled");
+	});
+	ICOMMAND(stopdemo, "", (), stopdemo());
+	ICOMMAND(cleardemos, "i", (int *i), { if(i) cleardemos(*i); });
+	ICOMMAND(listdemos, "", (), {
+		if(scriptclient) listdemos(scriptclient->clientnum);
+		else {
+			Wrapper w;
+			w.sep = "";
+			w.append("Listing demos: ");
+			w.sep = ", ";
+			loopv(demos) w.append(demos[i].info);
+			loopvk(w.lines) echo("%s", w.lines[k].s);
+		}
+	});
+	ICOMMAND(senddemo, "ii", (int *cn, int *i), {
+		if(cn && i) senddemo(*cn, *i);
+	});
+
 #define MAXIRC 384 // safe bet
 
 	SVAR(ircignore, ""); // ignore nicks that match this filter. set it to * to silence the irc
