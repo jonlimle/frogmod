@@ -8,3 +8,4 @@ enet/config.status
 enet/libenet.a
 enet/include/Makefile
 enet/include/enet/Makefile
+config.h
