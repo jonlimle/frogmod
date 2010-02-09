@@ -405,6 +405,16 @@ namespace server
 		message("\f3%s\f6 has been blacklisted.", match);
 		irc.speak("\00314%s has been blacklisted.", match);
 	});
+	ICOMMAND(unblacklist, "s", (char *match), {
+		if(match && *match)
+			loopv(blacklisted)
+				if(!strcmp(blacklisted[i].match, match)) {
+					blacklisted.remove(i);
+					message("\f3%s\f6 has been unblacklisted.", match);
+					irc.speak("\00314%s has been unblacklisted.", match);
+					return;
+				}
+	});
 
 	ICOMMAND(whitelist, "ss", (char *match, char *reason), {
 		if(!match || !*match) return;
@@ -414,6 +424,16 @@ namespace server
 		whitelisted.add(n);
 		message("\f3%s\f6 has been whitelisted.", match);
 		irc.speak("\00314%s has been whitelisted.", match);
+	});
+	ICOMMAND(unwhitelist, "s", (char *match), {
+		if(match && *match)
+			loopv(whitelisted)
+				if(!strcmp(whitelisted[i].match, match)) {
+					whitelisted.remove(i);
+					message("\f3%s\f6 has been unwhitelisted.", match);
+					irc.speak("\00314%s has been unwhitelisted.", match);
+					return;
+				}
 	});
 
 	int show_blacklist(int who) {
