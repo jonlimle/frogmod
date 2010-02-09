@@ -807,7 +807,7 @@ namespace server
 	ICOMMAND(mapname, "", (), result(smapname));
 	void forcemap(const char *s, int mode);
 	ICOMMAND(map, "si", (char *map, int *mode), { forcemap(map, mode?*mode:0); });
-	SVAR(version, VERSION);
+	SVAR(version, FROGMOD_VERSION);
 #ifdef HAVE_PROC
 	ICOMMAND(getrss, "", (), {
 		int64_t vmrss;
@@ -3145,9 +3145,9 @@ namespace server
 					if(vi) dodamage(vi, ci, damage, GUN_PISTOL);
 				} else whisper(sender, "Invalid usage.");
 			}
-#ifdef VERSION
+#ifdef FROGMOD_VERSION
 		} else if(!strcmp(command, "version")) {
-			whisper(sender, "Running FrogMod " VERSION ".");
+			whisper(sender, "Running FrogMod " FROGMOD_VERSION ".");
 #endif
 		} else if(!strcmp(command, "givemaster")) {
 			if(ci->privilege >= PRIV_MASTER && *c) {
@@ -4076,6 +4076,7 @@ namespace server
 			{
 				int val = getint(p);
 				if(ci->privilege<PRIV_ADMIN && !ci->local) break;
+				printf("pausing...\n");
 				pausegame(val > 0);
 				break;
 			}

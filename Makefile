@@ -1,6 +1,6 @@
 DEBUG=true
 
-VERSION=r${shell svnversion | sed -e "s/\([0-9]*\:\)\?\([0-9M]\+\).*/\2/"}
+FROGMOD_VERSION=$(shell git log --abbrev-commit --pretty=format:%h -1)
 
 programs=frogserv
 eventdir=libevent2
@@ -8,7 +8,7 @@ enetdir=enet
 
 frogserv_SRCS=color.cpp command.cpp crypto.cpp gameserver.cpp geom.cpp masterserver.cpp server.cpp stream.cpp tools.cpp evirc.cpp sha1.cpp json.cpp
 frogserv_EXTRA_DEPS=$(enetdir)/libenet.a $(eventdir)/.libs/libevent.a
-frogserv_CXXFLAGS=-Wall -fomit-frame-pointer -fsigned-char -Ienet/include -I$(eventdir)/include -I$(eventdir) -DVERSION=\"$(VERSION)\"
+frogserv_CXXFLAGS=-Wall -fomit-frame-pointer -fsigned-char -Ienet/include -I$(eventdir)/include -I$(eventdir) -DFROGMOD_VERSION=\"$(FROGMOD_VERSION)\"
 frogserv_LDFLAGS=$(enetdir)/libenet.a $(eventdir)/.libs/libevent.a
 frogserv_LIBS=z resolv
 extra=config.h config.mk
