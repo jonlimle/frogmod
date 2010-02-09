@@ -9,3 +9,6 @@ enet/libenet.a
 enet/include/Makefile
 enet/include/enet/Makefile
 config.h
+config.cfg
+server-init.cfg
+*~
