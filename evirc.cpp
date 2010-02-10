@@ -172,14 +172,26 @@ void Server::process(char *prefix, char *command, char *params[], int nparams, c
 		if(nparams >= 1) {
 			Channel *c = findchan(params[0]);
 			if(c) {
+				Source s;
+				s.server = this;
+				s.client = client;
+				s.peer = findpeer(stripident(prefix));
+				s.channel = c;
 				c->peerpart(prefix);
+				if(client->part_cb) client->part_cb(&s, trailing);
 			}
 		}
 	} else if(!strcmp(command, "JOIN")) {
 		Channel *c = findchan(trailing);
 		if(!c && nparams >= 1) c = findchan(params[0]);
 		if(c) {
+			Source s;
+			s.server = this;
+			s.client = client;
+			s.peer = findpeer(stripident(prefix));
+			s.channel = c;
 			c->peerjoin(stripident(prefix));
+			if(client->join_cb) client->join_cb(&s);
 		}
 	} else if(!strcmp(command, "QUIT")) {
 		for(unsigned int i = 0; i < peers.size(); i++) {

@@ -134,10 +134,14 @@ struct Client {
 	typedef void (*MessageCallback)(Source *, char *msg);
 	typedef void (*ServerQuitCallback)(Server *);
 	typedef void (*EmptyCallback)(void);
+	typedef void (*JoinCallback)(Source *);
+	typedef void (*PartCallback)(Source *, char *reason);
 
 	MessageCallback channel_message_cb, private_message_cb;
 	MessageCallback channel_action_message_cb, private_action_message_cb;
 	GenericCallback notice_cb, motd_cb, unhandled_cb, ping_cb;
+	JoinCallback join_cb;
+	PartCallback part_cb;
 	ServerQuitCallback server_quit_cb; // gets called when a server quitses
 	EmptyCallback empty_cb; // gets called when all servers are disconnected
 

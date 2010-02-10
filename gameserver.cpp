@@ -1102,10 +1102,12 @@ namespace server
 		buf[escapestring(buf, buf2, buf2 + strlen(buf2))] = 0;
 		message("\f4%s %s \f1* %s\f7 %s", source->server->host, source->channel->name, source->peer->nick, msg);
 		const char *al = getalias("ircactioncb");
-		defformatstring(str)("ircactioncb \"%s\" \"%s\" \"%s\"", buf, source->peer->nick, source->channel->name);
-		scriptircsource = source;
-		if(al && *al) execute(str);
-		scriptircsource = NULL;
+		if(al && *al) {
+			defformatstring(str)("ircactioncb \"%s\" \"%s\" \"%s\"", buf, source->peer->nick, source->channel->name);
+			scriptircsource = source;
+			execute(str);
+			scriptircsource = NULL;
+		}
 	}
 	void ircnoticecb(IRC::Server *s, char *prefix, char *trailing) {
 		if(prefix) echo("\f2[%s]\f1 -%s- %s\f7", s->host, prefix, trailing);
@@ -1113,6 +1115,19 @@ namespace server
 	}
 	void ircpingcb(IRC::Server *s, char *prefix, char *trailing) {
 		echo("\f2[%s PING/PONG]\f1 %s\f7", s->host, trailing?trailing:"");
+	}
+	void ircjoincb(IRC::Source *s) {
+		message("\f4%s %s \f1%s\f7 \f4has joined", s->server->host, s->channel->name, s->peer->nick);
+		echo("\f2[%s %s] \f1%s joined", s->server->host, s->channel->name, s->peer->nick);
+	}
+	void ircpartcb(IRC::Source *s, char *reason) {
+		if(reason) {
+			message("\f4%s %s \f1%s\f7 \f4has parted (%s)", s->server->host, s->channel->name, s->peer->nick, reason);
+			echo("\f2[%s %s] \f1%s parted (%s)", s->server->host, s->channel->name, s->peer->nick, reason);
+		} else {
+			message("\f4%s %s \f1%s\f7 \f4has parted", s->server->host, s->channel->name, s->peer->nick);
+			echo("\f2[%s %s] \f1%s parted", s->server->host, s->channel->name, s->peer->nick);
+		}
 	}
 
 	void serverinit()
@@ -1135,6 +1150,8 @@ namespace server
 		irc.channel_action_message_cb = irc.private_action_message_cb = ircactioncb;
 		irc.notice_cb = irc.motd_cb = ircnoticecb;
 		irc.ping_cb = ircpingcb;
+		irc.join_cb = ircjoincb;
+		irc.part_cb = ircpartcb;
 	}
 
 	int numclients(int exclude = -1, bool nospec = true, bool noai = true)
