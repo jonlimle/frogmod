@@ -72,7 +72,7 @@ struct Server {
 
 	void init();
 
-	bool connect(const char *host, const char *nick);
+	bool connect(const char *host, const char *nick, int port = 6667);
 	void quit(const char *msg = NULL, int quitsecs = 1); // quit with a message, force disconnect after quitsecs seconds
 	void join(const char *channel, int verbosity_ = 0);
 	void part(const char *channel);
@@ -145,7 +145,7 @@ struct Client {
 	ServerQuitCallback server_quit_cb; // gets called when a server quitses
 	EmptyCallback empty_cb; // gets called when all servers are disconnected
 
-	bool connect(const char *host, const char *nick);
+	bool connect(const char *host, const char *nick, int port = 6667);
 	void quit(const char *msg);
 	Server *findserv(const char *host) {
 		for(unsigned int i = 0; i < servers.size(); i++) {

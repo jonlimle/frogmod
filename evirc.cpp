@@ -82,9 +82,9 @@ void Server::init() {
 	DEBUGF(reconnect_event = evtimer_new(client->base, irc_reconnectcb, this));
 }
 
-bool Server::connect(const char *h, const char *n) {
+bool Server::connect(const char *h, const char *n, int p) {
 	host = strdup(h);
-	port = 6667;
+	port = p;
 	nick = strdup(n);
 	DEBUGF(evdns_base_resolve_ipv4(client->dnsbase, host, 0, irc_dnscb, this));
 	return true;
@@ -477,11 +477,11 @@ void Source::vspeak(const char *fmt, va_list ap) {
 	}
 }
 
-bool Client::connect(const char *host, const char *nick) {
+bool Client::connect(const char *host, const char *nick, int port) {
 	Server *s = new Server;
 	s->client = this;
 	s->init();
-	s->connect(host, nick);
+	s->connect(host, nick, port);
 	servers.push_back(s);
 	return true;
 }

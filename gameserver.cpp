@@ -2944,8 +2944,8 @@ namespace server
 		loopv(bans) if(!fnmatch(bans[i].match, getclienthostname(ci->clientnum), 0)) { disconnect_client(ci->clientnum, DISC_IPBAN); return; }
 	}
 
-	ICOMMAND(ircconnect, "ss", (const char *s, const char *n), {
-		irc.connect(s, n);
+	ICOMMAND(ircconnect, "ssi", (const char *s, const char *n, int *p), {
+		irc.connect(s, n, (p&&*p)?*p:6667);
 	});
 	ICOMMAND(ircjoin, "ssi", (const char *s, const char *c, const int *v), {
 		irc.join(s, c, *v);
