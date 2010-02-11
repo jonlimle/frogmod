@@ -1100,10 +1100,10 @@ namespace server
 		string buf, buf2;
 		color_irc2sauer(msg, buf2);
 		buf[escapestring(buf, buf2, buf2 + strlen(buf2))] = 0;
-		message("\f4%s %s \f1* %s\f7 %s", source->server->host, source->channel->name, source->peer->nick, msg);
+		message("\f4%s \f1* %s\f7 %s", source->channel->alias, source->peer->nick, msg);
 		const char *al = getalias("ircactioncb");
 		if(al && *al) {
-			defformatstring(str)("ircactioncb \"%s\" \"%s\" \"%s\"", buf, source->peer->nick, source->channel->name);
+			defformatstring(str)("ircactioncb \"%s\" \"%s\" \"%s\"", buf, source->peer->nick, source->server->host, source->channel->name);
 			scriptircsource = source;
 			execute(str);
 			scriptircsource = NULL;
@@ -1117,15 +1117,15 @@ namespace server
 		echo("\f2[%s PING/PONG]\f1 %s\f7", s->host, trailing?trailing:"");
 	}
 	void ircjoincb(IRC::Source *s) {
-		message("\f4%s %s \f1%s\f7 \f4has joined", s->server->host, s->channel->name, s->peer->nick);
+		message("\f4%s \f1%s\f7 \f4has joined", s->channel->alias, s->peer->nick);
 		echo("\f2[%s %s] \f1%s joined", s->server->host, s->channel->name, s->peer->nick);
 	}
 	void ircpartcb(IRC::Source *s, char *reason) {
 		if(reason) {
-			message("\f4%s %s \f1%s\f7 \f4has parted (%s)", s->server->host, s->channel->name, s->peer->nick, reason);
+			message("\f4 %s \f1%s\f7 \f4has parted (%s)", s->channel->alias, s->peer->nick, reason);
 			echo("\f2[%s %s] \f1%s parted (%s)", s->server->host, s->channel->name, s->peer->nick, reason);
 		} else {
-			message("\f4%s %s \f1%s\f7 \f4has parted", s->server->host, s->channel->name, s->peer->nick);
+			message("\f4%s \f1%s\f7 \f4has parted", s->channel->alias, s->peer->nick);
 			echo("\f2[%s %s] \f1%s parted", s->server->host, s->channel->name, s->peer->nick);
 		}
 	}
@@ -2944,14 +2944,14 @@ namespace server
 		loopv(bans) if(!fnmatch(bans[i].match, getclienthostname(ci->clientnum), 0)) { disconnect_client(ci->clientnum, DISC_IPBAN); return; }
 	}
 
-	ICOMMAND(ircconnect, "ssi", (const char *s, const char *n, int *p), {
-		irc.connect(s, n, (p&&*p)?*p:6667);
+	ICOMMAND(ircconnect, "ssis", (const char *s, const char *n, int *p, const char *a), {
+		if(s && *s && n && *n) irc.connect(s, n, (p&&*p)?*p:6667, (a&&*a)?a:NULL);
 	});
-	ICOMMAND(ircjoin, "ssi", (const char *s, const char *c, const int *v), {
-		irc.join(s, c, *v);
+	ICOMMAND(ircjoin, "ssis", (const char *s, const char *c, const int *v, const char *a), {
+		if(s && *s && c && *c) irc.join(s, c, (v&&*v)?*v:0, (a&&*a)?a:NULL);
 	});
 	ICOMMAND(ircpart, "ss", (const char *s, const char *c), {
-		irc.part(s, c);
+		if(s && *s && c && *c) irc.part(s, c);
 	});
 	ICOMMAND(ircecho, "C", (const char *msg), {
 		string buf;
@@ -3030,7 +3030,7 @@ namespace server
 				string buf, buf2;
 				color_irc2sauer(msg, buf2);
 				buf[escapestring(buf, buf2, buf2 + strlen(buf2))] = 0;
-				message("\f4%s %s \f2<%s> \f7%s", source->server->host, source->channel->name, source->peer->nick, buf);
+				message("\f4%s \f2<%s> \f7%s", source->channel->alias, source->peer->nick, buf);
 				echo("\f2[%s %s]\f1 <%s>\f0 %s\f7", source->server->host, source->channel->name, source->peer->nick, buf);
 				const char *al = getalias("ircmsgcb");
 				defformatstring(str)("ircmsgcb \"%s\" \"%s\" \"%s\"", buf, source->peer->nick, source->channel->name);

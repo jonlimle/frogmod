@@ -40,6 +40,7 @@ struct ChannelPeer {
 struct Server;
 struct Channel {
 	char *name;
+	char *alias;
 	std::vector <ChannelPeer *> peers;
 	int verbosity;
 	Server *server;
@@ -56,6 +57,7 @@ struct Channel {
 struct Client;
 struct Server {
 	char *host;
+	char *alias; // alias for the hostname ie irc.quakenet.org -> QuakeNet
 	int port;
 	char *nick;
 	enum { None, Connecting, Connected, SentIdent, Active, Quitting };
@@ -72,9 +74,9 @@ struct Server {
 
 	void init();
 
-	bool connect(const char *host, const char *nick, int port = 6667);
+	bool connect(const char *host, const char *nick, int port = 6667, const char *alias = NULL);
 	void quit(const char *msg = NULL, int quitsecs = 1); // quit with a message, force disconnect after quitsecs seconds
-	void join(const char *channel, int verbosity_ = 0);
+	void join(const char *channel, int verbosity_ = 0, const char *alias = NULL);
 	void part(const char *channel);
 	void read(void);
 
@@ -145,7 +147,7 @@ struct Client {
 	ServerQuitCallback server_quit_cb; // gets called when a server quitses
 	EmptyCallback empty_cb; // gets called when all servers are disconnected
 
-	bool connect(const char *host, const char *nick, int port = 6667);
+	bool connect(const char *host, const char *nick, int port = 6667, const char *alias = NULL);
 	void quit(const char *msg);
 	Server *findserv(const char *host) {
 		for(unsigned int i = 0; i < servers.size(); i++) {
@@ -165,9 +167,9 @@ struct Client {
 		}
 		return false;
 	}
-	void join(const char *host, const char *channel, int verbosity = 0) {
+	void join(const char *host, const char *channel, int verbosity = 0, const char *alias = NULL) {
 		Server *s = findserv(host);
-		if(s) s->join(channel, verbosity);
+		if(s) s->join(channel, verbosity, alias);
 	}
 	void part(const char *host, const char *channel) {
 		Server *s = findserv(host);

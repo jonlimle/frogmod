@@ -82,9 +82,10 @@ void Server::init() {
 	DEBUGF(reconnect_event = evtimer_new(client->base, irc_reconnectcb, this));
 }
 
-bool Server::connect(const char *h, const char *n, int p) {
+bool Server::connect(const char *h, const char *n, int p, const char *alias_) {
 	host = strdup(h);
 	port = p;
+	if(alias_) alias = strdup(alias_); else alias = strdup(h);
 	nick = strdup(n);
 	DEBUGF(evdns_base_resolve_ipv4(client->dnsbase, host, 0, irc_dnscb, this));
 	return true;
@@ -103,7 +104,7 @@ void Server::quit(const char *msg, int quitsecs) {
 	}
 }
 
-void Server::join(const char *channel, int verbosity_) {
+void Server::join(const char *channel, int verbosity_, const char *alias_) {
 	bool add = true;
 	for(unsigned int i = 0; i < channels.size(); i++) {
 		if(!strcmp(channels[i]->name, channel)) add=false; // don't join an existing channel
@@ -111,6 +112,12 @@ void Server::join(const char *channel, int verbosity_) {
 	if(add) {
 		Channel *c = new Channel;
 		c->name = strdup(channel);
+		if(alias_) c->alias = strdup(alias_);
+		else {
+			char buf[512];
+			sprintf(buf, "%s %s", alias, channel);
+			c->alias = strdup(buf);
+		}
 		c->server = this;
 		c->verbosity = verbosity_;
 		channels.push_back(c);
@@ -477,11 +484,11 @@ void Source::vspeak(const char *fmt, va_list ap) {
 	}
 }
 
-bool Client::connect(const char *host, const char *nick, int port) {
+bool Client::connect(const char *host, const char *nick, int port, const char *alias) {
 	Server *s = new Server;
 	s->client = this;
 	s->init();
-	s->connect(host, nick, port);
+	s->connect(host, nick, port, alias);
 	servers.push_back(s);
 	return true;
 }
