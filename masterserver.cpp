@@ -67,15 +67,16 @@ static void mastereventcb(struct bufferevent *buf, short what, void *arg) {
 		printf("Connected to masterserver\n");
 	} else {
 		if(what != (BEV_EVENT_EOF & EV_READ)) bufferevent_print_error(what, "Disconnected from \"%s\" master server:", mastername);
-		struct sockaddr_in addr;
-		addr.sin_addr.s_addr = masteraddr;
-		addr.sin_port = htons(server::masterport());
-		addr.sin_family = AF_INET;
-
 		DEBUGF(bufferevent_free(masterbuf));
+		if(errno == ECONNREFUSED) {
+			allowupdatemaster = false;
+			return; // don't try to reconnect if connection is refused.
+		}
+
 		DEBUGF(masterbuf = bufferevent_socket_new(evbase, mkmastersock(), BEV_OPT_CLOSE_ON_FREE));
+		DEBUGF(bufferevent_enable(masterbuf, EV_READ));
 		DEBUGF(bufferevent_setcb(masterbuf, masterreadcb, masterwritecb, mastereventcb, NULL));
-		DEBUGF(bufferevent_socket_connect(masterbuf, (sockaddr *)&addr, sizeof(struct sockaddr_in)));
+		bufferevent_socket_connect_hostname(masterbuf, dnsbase, AF_UNSPEC, mastername, server::masterport());
 	}
 }
 
@@ -101,7 +102,6 @@ void initmasterserver() {
 	DEBUGF(masterbuf = bufferevent_socket_new(evbase, mkmastersock(), BEV_OPT_CLOSE_ON_FREE));
 	DEBUGF(bufferevent_setcb(masterbuf, masterreadcb, masterwritecb, mastereventcb, NULL));
 	DEBUGF(bufferevent_enable(masterbuf, EV_READ));
-	DEBUGF(bufferevent_enable(masterbuf, EV_WRITE));
 	DEBUGF(registermaster_timer_handler(0, 0, NULL));
 	bufferevent_socket_connect_hostname(masterbuf, dnsbase, AF_UNSPEC, mastername, server::masterport());
 }
