@@ -12,3 +12,4 @@ config.h
 config.cfg
 server-init.cfg
 *~
+*.rec
