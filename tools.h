@@ -931,12 +931,9 @@ struct HttpQuery {
 };
 
 void froghttp_get(event_base *base, evdns_base *dnsbase, char *url, void(*cb)(evhttp_request *, void *), void *arg);
-void bufferevent_print_error(short what, const char *fmt, ...)
-	EVUTIL_CHECK_FMT(2, 3);
-void evdns_print_error(int result, const char *fmt, ...)
-	EVUTIL_CHECK_FMT(2, 3);
-void bufferevent_write_printf(struct bufferevent *be, const char *fmt, ...)
-	EVUTIL_CHECK_FMT(2, 3);
+void bufferevent_print_error(short what, const char *fmt, ...);
+void evdns_print_error(int result, const char *fmt, ...);
+void bufferevent_write_printf(struct bufferevent *be, const char *fmt, ...);
 void bufferevent_write_vprintf(struct bufferevent *be, const char *fmt, va_list ap);
 char *evbuffer_readln_nul(struct evbuffer *buffer, size_t *n_read_out, enum evbuffer_eol_style eol_style);
 

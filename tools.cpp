@@ -192,7 +192,7 @@ static void froghttp_dnscb(int result, char type, int count, int ttl, void *addr
 			evhttp_request *req = evhttp_request_new(froghttp_reqcb, arg);
 			evkeyvalq *headers = evhttp_request_get_output_headers(req);
 			evhttp_add_header(headers, "Host", q->url.hostname); // fix for HTTP/1.1
-			evhttp_connection *con = evhttp_connection_base_new(q->base, ipstr, q->url.port);
+			evhttp_connection *con = evhttp_connection_base_new(q->base, q->dnsbase, ipstr, q->url.port);
 			evhttp_make_request(con, req, EVHTTP_REQ_GET, q->url.full);
 			return;
 		} else printf("%s: type != DNS_IPv4_A\n", __func__);
