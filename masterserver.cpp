@@ -11,7 +11,6 @@ SVAR(mastername, server::defaultmaster());
 bufferevent *masterbuf = NULL;
 in_addr_t masteraddr = 0;
 event registermaster_timer;
-event masterdns_timer;
 
 extern int serverport;
 void updatemasterserver() {
@@ -49,10 +48,23 @@ static void masterreadcb(struct bufferevent *buf, void *arg) {
 static void masterwritecb(struct bufferevent *buf, void *arg) {
 }
 
+extern ENetAddress serveraddress;
+static int mkmastersock() {
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	if(fd && evutil_make_socket_nonblocking(fd)>=0 && serveraddress.host) {
+		struct sockaddr_in addr;
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = serveraddress.host;
+		addr.sin_port = 0;
+		bind(fd, (sockaddr *)&addr, sizeof(addr));
+	}
+	return fd;
+}
+
 static void mastereventcb(struct bufferevent *buf, short what, void *arg) {
+	printf("mastereventcb\n");
 	if(what == BEV_EVENT_CONNECTED) {
 		printf("Connected to masterserver\n");
-		DEBUGF(bufferevent_enable(masterbuf, EV_READ));
 	} else {
 		if(what != (BEV_EVENT_EOF & EV_READ)) bufferevent_print_error(what, "Disconnected from \"%s\" master server:", mastername);
 		struct sockaddr_in addr;
@@ -61,7 +73,7 @@ static void mastereventcb(struct bufferevent *buf, short what, void *arg) {
 		addr.sin_family = AF_INET;
 
 		DEBUGF(bufferevent_free(masterbuf));
-		DEBUGF(masterbuf = bufferevent_socket_new(evbase, -1, BEV_OPT_CLOSE_ON_FREE));
+		DEBUGF(masterbuf = bufferevent_socket_new(evbase, mkmastersock(), BEV_OPT_CLOSE_ON_FREE));
 		DEBUGF(bufferevent_setcb(masterbuf, masterreadcb, masterwritecb, mastereventcb, NULL));
 		DEBUGF(bufferevent_socket_connect(masterbuf, (sockaddr *)&addr, sizeof(struct sockaddr_in)));
 	}
@@ -73,34 +85,9 @@ bool requestmasterf(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	bufferevent_write_vprintf(masterbuf, fmt, ap);
-//	vprintf(fmt, ap);
 	va_end(ap);
 
 	return true;
-}
-
-static void masterdnscb(int result, char type, int count, int ttl, void *addresses, void *arg) {
-	if(result == DNS_ERR_NONE) {
-		if(type == DNS_IPv4_A) {
-			masteraddr = ((in_addr_t *)addresses)[0];
-			struct sockaddr_in addr;
-			addr.sin_addr.s_addr = masteraddr;
-			addr.sin_port = htons(server::masterport());
-			addr.sin_family = AF_INET;
-			DEBUGF(bufferevent_socket_connect(masterbuf, (sockaddr *)&addr, sizeof(struct sockaddr_in)));
-		}
-	} else {
-		evdns_print_error(result, "Error resolving %s:", mastername);
-		timeval ten_secs;
-		ten_secs.tv_sec = 10;
-		ten_secs.tv_usec = 0;
-		DEBUGF(event_add(&masterdns_timer, &ten_secs));
-	}
-}
-
-void masterdns_timer_handler(int, short, void *) {
-	printf("Resolving \"%s\"...\n", mastername);
-	evdns_base_resolve_ipv4(dnsbase, mastername, 0, masterdnscb, NULL);
 }
 
 void initmasterserver() {
@@ -110,9 +97,11 @@ void initmasterserver() {
 	}
 
 	DEBUGF(evtimer_assign(&registermaster_timer, evbase, &registermaster_timer_handler, NULL));
-	DEBUGF(evtimer_assign(&masterdns_timer, evbase, &masterdns_timer_handler, NULL));
-	DEBUGF(masterbuf = bufferevent_socket_new(evbase, -1, BEV_OPT_CLOSE_ON_FREE));
+
+	DEBUGF(masterbuf = bufferevent_socket_new(evbase, mkmastersock(), BEV_OPT_CLOSE_ON_FREE));
 	DEBUGF(bufferevent_setcb(masterbuf, masterreadcb, masterwritecb, mastereventcb, NULL));
+	DEBUGF(bufferevent_enable(masterbuf, EV_READ));
+	DEBUGF(bufferevent_enable(masterbuf, EV_WRITE));
 	DEBUGF(registermaster_timer_handler(0, 0, NULL));
-	DEBUGF(masterdns_timer_handler(0, 0, NULL));
+	bufferevent_socket_connect_hostname(masterbuf, dnsbase, AF_UNSPEC, mastername, server::masterport());
 }
