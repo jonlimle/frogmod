@@ -3241,7 +3241,7 @@ namespace server
 				}
 			}
 		} else if(!strcmp(command, "record") || !strcmp(command, "rec")) { //record coopedit commands
-			if(*c) { //FIXME: check for existing and append .rec extension automatically
+			if(*c && m_edit) { //FIXME: check for existing and append .rec extension automatically
 				char buf[1024];
 				sprintf(buf, "%s.rec", c);
 				DELETEP(ci->recording);
@@ -3262,7 +3262,7 @@ namespace server
 				whisper(sender, "Stopped playing.");
 			}
 		} else if(!strcmp(command, "recplay")) {
-			if(*c) {
+			if(*c && m_edit) {
 				DELETEP(ci->recording);
 				char buf[1024];
 				sprintf(buf, "%s.rec", c);
