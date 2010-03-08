@@ -2983,6 +2983,23 @@ namespace server
 
 #define MAXIRC 384 // safe bet
 
+	void escapecubestring(char *dst, char *src) {
+		char *d = dst, *s = src;
+		while(*s) {
+			switch(*s) {
+				case '^':
+				case '"':
+				case '$':
+					*d++ = '^';
+					*d++ = *s++;
+					break;
+				default:
+					*d++ = *s++;
+			}
+			*d = 0;
+		}
+	}
+
 	SVAR(ircignore, ""); // ignore nicks that match this filter. set it to * to silence the irc
 	void ircmsgcb(IRC::Source *source, char *msg) {
 		bool gotfrog = false;
@@ -3025,17 +3042,22 @@ namespace server
 			} else if(!strcmp(command, "help")) {
 				source->reply("\00314Available commands: \00307who info login");
 			} else if(can_script(scriptircsource)) execute(msg);
-		} else if(source->channel) { // only relay channel messages, not private messages
-			if(fnmatch(ircignore, source->peer->nick, 0)) {
-				string buf, buf2;
-				color_irc2sauer(msg, buf2);
-				buf[escapestring(buf, buf2, buf2 + strlen(buf2))] = 0;
-				message("\f4%s \f2<%s> \f7%s", source->channel->alias, source->peer->nick, buf);
-				echo("\f2[%s %s]\f1 <%s>\f0 %s\f7", source->server->host, source->channel->name, source->peer->nick, buf);
-				const char *al = getalias("ircmsgcb");
-				defformatstring(str)("ircmsgcb \"%s\" \"%s\" \"%s\"", buf, source->peer->nick, source->channel->name);
-				scriptircsource = source;
-				if(al && *al) execute(str);
+		} else {
+			if(source->channel) { // only relay channel messages, not private messages
+				if(fnmatch(ircignore, source->peer->nick, 0)) {
+					string buf, buf2;
+					color_irc2sauer(msg, buf2);
+					buf[escapestring(buf, buf2, buf2 + strlen(buf2))] = 0;
+					message("\f4%s \f2<%s> \f7%s", source->channel->alias, source->peer->nick, buf);
+					echo("\f2[%s %s]\f1 <%s>\f0 %s\f7", source->server->host, source->channel->name, source->peer->nick, buf);
+					const char *al = getalias("ircmsgcb");
+					string buf3;
+					escapecubestring(buf3, msg);
+					printf("escaped cube string: [%s]\n", buf3);
+					defformatstring(str)("ircmsgcb \"%s\" \"%s\" \"%s\"", buf3, source->peer->nick, source->channel->name);
+					scriptircsource = source;
+					if(al && *al) execute(str);
+				}
 			}
 		}
 		scriptircsource = NULL;
